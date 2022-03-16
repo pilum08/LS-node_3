@@ -1,33 +1,57 @@
 const express = require('express')
 const router = express.Router()
+const { skills } = require ('../db/data.json')
+const {setSkills,addProd}=require('../db/index.js')
+const path= require('path')
+const formidable = require('formidable')
+const fs=require('fs')
 
 router.get('/', (req, res, next) => {
-  // TODO: Реализовать, подстановку в поля ввода формы 'Счетчики'
-  // актуальных значений из сохраненых (по желанию)
-  res.render('pages/admin', { title: 'Admin page' })
+  res.render('pages/admin', { title: 'Admin page',skills 
+})
 })
 
 router.post('/skills', (req, res, next) => {
-  /*
-  TODO: Реализовать сохранение нового объекта со значениями блока скиллов
-
-    в переменной age - Возраст начала занятий на скрипке
-    в переменной concerts - Концертов отыграл
-    в переменной cities - Максимальное число городов в туре
-    в переменной years - Лет на сцене в качестве скрипача
-  */
-  res.send('Реализовать сохранение нового объекта со значениями блока скиллов')
+ try {
+   setSkills(req.body)
+   console.log(skills[2].number);
+  } catch (err) {
+    console.log(err);
+  }
+  res.redirect('/admin')
 })
 
 router.post('/upload', (req, res, next) => {
-  /* TODO:
-   Реализовать сохранения объекта товара на стороне сервера с картинкой товара и описанием
-    в переменной photo - Картинка товара
-    в переменной name - Название товара
-    в переменной price - Цена товара
-    На текущий момент эта информация хранится в файле data.json  в массиве products
-  */
-  res.send('Реализовать сохранения объекта товара на стороне сервера')
+  const form = new formidable.IncomingForm();
+  const upload = path.normalize("public/assets/img/products");
+
+  form.uploadDir = path.join(process.cwd(), upload);
+
+  form.parse(req, function (err, fields, files) {
+    if (err) {
+      console.log(err);
+      res.redirect("/admin");
+    }
+
+    const { name, price } = fields;
+
+    if (!name && !price) {
+      res.redirect("/admin");
+    }
+
+    const fileName = path.join(upload, files.photo.originalFilename);
+
+    fs.rename(files.photo.filepath, fileName, (err) =>{
+      if (err) {
+       console.log(err);
+        res.redirect("/admin");
+      }
+
+       addProd(fields, files.photo.originalFilename);
+      console.log(err);
+      res.redirect("/admin");
+    });
+  });
 })
 
 module.exports = router

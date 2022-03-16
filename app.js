@@ -2,10 +2,27 @@ const createError = require('http-errors')
 const express = require('express')
 const path = require('path')
 const logger = require('morgan')
+const session = require("express-session")
+const flash = require("connect-flash")
 
 const mainRouter = require('./routes/')
 
 const app = express()
+
+app.use(
+  session({
+    secret: "hw3express",
+    key: "sessionkey",
+    cookie: {
+      path: "/",
+      httpOnly: true,
+      maxAge: 10 * 60 * 1000,
+    },
+    saveUninitialized: false,
+    resave: false,
+  })
+);
+app.use(flash());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'))
@@ -40,4 +57,5 @@ app.use((err, req, res, next) => {
   res.render('error')
 })
 
-app.listen(3000, () => {})
+
+app.listen(3000, () => {console.log("Listening on port 3000");})
